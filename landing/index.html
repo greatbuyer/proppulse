@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropPulse — US Real Estate Analytics Platform</title>
+    <meta name="description" content="Track US real estate trends with interactive heatmaps, pricing analytics, and market comparisons. Free professional-grade analytics for investors and homeowners.">
+    <meta property="og:title" content="PropPulse — US Real Estate Analytics Platform">
+    <meta property="og:description" content="Interactive analytics dashboard for US real estate market trends.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0e1a;
+            --bg-card: #1a1f35;
+            --text: #f1f5f9;
+            --text-dim: #94a3b8;
+            --accent: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --gradient: linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4);
+            --border: rgba(255,255,255,0.07);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- Animated background --- */
+        .bg-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .bg-glow-1 { background: #3b82f6; top: -200px; left: -100px; animation: float 8s ease-in-out infinite; }
+        .bg-glow-2 { background: #8b5cf6; bottom: -200px; right: -100px; animation: float 10s ease-in-out infinite reverse; }
+        .bg-glow-3 { background: #06b6d4; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: float 12s ease-in-out infinite; }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(30px, -30px); }
+            66% { transform: translate(-20px, 20px); }
+        }
+
+        /* --- Navigation --- */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 48px;
+            backdrop-filter: blur(12px);
+            background: rgba(10, 14, 26, 0.8);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text);
+        }
+        .nav-logo {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.1rem;
+        }
+        .nav-name { font-weight: 800; font-size: 1.1rem; }
+        .nav-links { display: flex; gap: 32px; }
+        .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-cta {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 24px 80px;
+            z-index: 1;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: var(--accent);
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 28px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+        .hero h1 .gradient-text {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+        .hero-btn-primary {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+        .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+        }
+        .hero-btn-secondary {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 14px 32px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .hero-btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.15);
+        }
+        .hero-stats {
+            display: flex;
+            gap: 48px;
+            margin-top: 64px;
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+        .hero-stat-value { font-size: 2rem; font-weight: 800; }
+        .hero-stat-label { font-size: 0.8rem; color: var(--text-dim); margin-top: 4px; }
+
+        /* --- Features Section --- */
+        .features {
+            position: relative;
+            z-index: 1;
+            padding: 100px 48px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            max-width: 500px;
+        }
+        .section-desc {
+            color: var(--text-dim);
+            font-size: 1rem;
+            max-width: 500px;
+            margin-bottom: 48px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.2);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        .feature-icon.blue { background: rgba(59, 130, 246, 0.12); }
+        .feature-icon.green { background: rgba(16, 185, 129, 0.12); }
+        .feature-icon.purple { background: rgba(139, 92, 246, 0.12); }
+        .feature-icon.cyan { background: rgba(6, 182, 212, 0.12); }
+        .feature-icon.amber { background: rgba(245, 158, 11, 0.12); }
+        .feature-icon.red { background: rgba(239, 68, 68, 0.12); }
+        .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+        .feature-card p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; }
+
+        /* --- CTA Section --- */
+        .cta-section {
+            position: relative;
+            z-index: 1;
+            padding: 100px 48px;
+            text-align: center;
+        }
+        .cta-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 64px 48px;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient);
+        }
+        .cta-box h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        .cta-box p {
+            color: var(--text-dim);
+            font-size: 1rem;
+            max-width: 500px;
+            margin: 0 auto 32px;
+        }
+
+        /* --- Footer --- */
+        .landing-footer {
+            position: relative;
+            z-index: 1;
+            padding: 48px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+        .landing-footer a { color: var(--accent); text-decoration: none; }
+        .landing-footer a:hover { text-decoration: underline; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .nav { padding: 12px 20px; }
+            .nav-links { display: none; }
+            .features-grid { grid-template-columns: 1fr; }
+            .features { padding: 60px 20px; }
+            .cta-section { padding: 60px 20px; }
+            .hero-stats { gap: 24px; flex-wrap: wrap; justify-content: center; }
+            .hero-actions { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="/" class="nav-brand">
+            <div class="nav-logo">P</div>
+            <span class="nav-name">PropPulse</span>
+        </a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="https://proppulse.vercel.app" target="_blank">Dashboard</a>
+        </div>
+        <a href="https://proppulse.vercel.app" class="nav-cta" target="_blank">Launch App →</a>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-badge">
+            <span>📊</span> Free · Open Source · No credit card required
+        </div>
+        <h1>
+            US Real Estate<br>
+            <span class="gradient-text">Analytics Platform</span>
+        </h1>
+        <p>
+            Track pricing trends, compare markets, and discover investment opportunities
+            with interactive visualizations powered by live data from 15+ states.
+        </p>
+        <div class="hero-actions">
+            <a href="https://proppulse.vercel.app" class="hero-btn-primary" target="_blank">
+                🚀 Launch Dashboard
+            </a>
+            <a href="#features" class="hero-btn-secondary">
+                Learn More
+            </a>
+        </div>
+        <div class="hero-stats">
+            <div>
+                <div class="hero-stat-value" style="color: var(--accent)">15+</div>
+                <div class="hero-stat-label">States Tracked</div>
+            </div>
+            <div>
+                <div class="hero-stat-value" style="color: var(--accent-green)">7yr</div>
+                <div class="hero-stat-label">Historical Data</div>
+            </div>
+            <div>
+                <div class="hero-stat-value" style="color: var(--accent-cyan)">Real-time</div>
+                <div class="hero-stat-label">Market Updates</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="section-label">Features</div>
+        <div class="section-title">Everything you need to analyze real estate markets</div>
+        <div class="section-desc">
+            Professional-grade analytics tools previously only available to institutional investors, now free for everyone.
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon blue">🗺️</div>
+                <h3>Interactive Heatmap</h3>
+                <p>Color-coded US state map showing median prices and year-over-year changes with hover tooltips.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon green">📈</div>
+                <h3>Trend Analytics</h3>
+                <p>Line and area charts tracking national pricing trends over 7 years of historical data.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon purple">⚖️</div>
+                <h3>Market Comparison</h3>
+                <p>Side-by-side comparison of two markets with detailed metrics and winner highlighting.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon cyan">🔍</div>
+                <h3>Smart Search</h3>
+                <p>Instant search with autocomplete to find any tracked market in milliseconds.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon amber">🔔</div>
+                <h3>Price Alerts</h3>
+                <p>Set custom alerts for your favorite markets to stay ahead of price movements.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon red">📥</div>
+                <h3>Export Reports</h3>
+                <p>Download market data as CSV or PDF for presentations and deeper analysis.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section" id="pricing">
+        <div class="cta-box">
+            <h2>Start analyzing markets — for free</h2>
+            <p>No credit card required. No signup needed to view data. Create an account to save markets and set alerts.</p>
+            <a href="https://proppulse.vercel.app" class="hero-btn-primary" target="_blank">
+                🚀 Launch Dashboard
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <p>© 2026 PropPulse. Built with Next.js · Hosted on <a href="https://vercel.com" target="_blank">Vercel</a> · Powered by <a href="https://supabase.com" target="_blank">Supabase</a></p>
+        <p style="margin-top: 8px;">Data sourced from Zillow Research, FRED, and public records.</p>
+    </footer>
+</body>
+</html>
