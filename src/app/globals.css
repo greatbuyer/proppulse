@@ -1339,3 +1339,26 @@ a:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
 }
+
+/* ---- Footer Disclaimer ---- */
+.footer-disclaimer-brief {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  margin-top: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.footer-disclaimer-link {
+  background: none;
+  border: none;
+  color: var(--accent-blue);
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.footer-disclaimer-link:hover {
+  color: var(--accent-cyan);
+}
