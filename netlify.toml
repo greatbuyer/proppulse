@@ -1,6 +1,13 @@
 [build]
   publish = "landing"
-  command = "echo 'Static site — no build needed'"
+  command = "echo 'Static landing page - no build needed'"
+  ignore = "exit 0"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Disable all plugins - this is a static HTML site only
+[[plugins]]
 
 [[redirects]]
   from = "/*"
@@ -13,4 +20,3 @@
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
