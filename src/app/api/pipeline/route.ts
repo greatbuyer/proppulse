@@ -160,10 +160,9 @@ export async function GET(request: Request) {
         const fredData = await fetchFREDNationalMedian();
         log.push(`  ✓ Got ${fredData.length} FRED observations`);
 
-        // Step 4: Process and upsert Zillow data into price_trends
-        log.push('💾 Upserting price trend data...');
-        let trendRowsInserted = 0;
-        let trendRowsSkipped = 0;
+        // Step 4: BATCH process — collect all rows first, then bulk upsert
+        log.push('💾 Processing price trend data...');
+        const allTrendRows: any[] = [];
 
         for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
             const region = regionMap.get(stateName);
@@ -172,18 +171,13 @@ export async function GET(request: Request) {
                 continue;
             }
 
-            // Only keep data from 2020 onwards to match our schema
             const recentData = timeSeries.filter(
                 (d: { date: string; value: number }) => d.date >= '2020-01-01'
             );
-
-            // Sample quarterly (every 3rd month) to avoid too many rows
             const quarterlyData = recentData.filter((_: any, i: number) => i % 3 === 0 || i === recentData.length - 1);
 
             for (let idx = 0; idx < quarterlyData.length; idx++) {
                 const d = quarterlyData[idx];
-
-                // Calculate YoY change
                 const oneYearAgo = timeSeries.find(
                     (t: { date: string; value: number }) => t.date.substring(0, 7) ===
                         new Date(new Date(d.date).setFullYear(new Date(d.date).getFullYear() - 1))
@@ -192,68 +186,49 @@ export async function GET(request: Request) {
                 const yoyChange = oneYearAgo
                     ? Math.round(((d.value - oneYearAgo.value) / oneYearAgo.value) * 10000) / 100
                     : 0;
-
-                // Calculate MoM change
                 const prevMonth = idx > 0 ? quarterlyData[idx - 1] : null;
                 const momChange = prevMonth
                     ? Math.round(((d.value - prevMonth.value) / prevMonth.value) * 10000) / 100
                     : 0;
 
-                // Estimate price per sqft (ZHVI is total home value, avg US home ~1800 sqft)
-                const avgSqft = 1800;
-                const pricePerSqft = Math.round(d.value / avgSqft);
-
-                const row = {
+                allTrendRows.push({
                     region_id: region.id,
                     date: d.date.substring(0, 10),
-                    property_type: 'residential' as const,
+                    property_type: 'residential',
                     median_price: d.value,
-                    price_per_sqft: pricePerSqft,
+                    price_per_sqft: Math.round(d.value / 1800),
                     yoy_change: yoyChange,
                     mom_change: momChange,
-                };
-
-                const { error } = await supabaseAdmin
-                    .from('price_trends')
-                    .upsert(row, {
-                        onConflict: 'region_id,date,property_type',
-                        ignoreDuplicates: false,
-                    });
-
-                if (error) {
-                    // If upsert fails due to no unique constraint, try insert
-                    if (error.code === '42P10' || error.message.includes('unique')) {
-                        // Delete existing and insert fresh
-                        await supabaseAdmin
-                            .from('price_trends')
-                            .delete()
-                            .eq('region_id', region.id)
-                            .eq('date', row.date)
-                            .eq('property_type', 'residential');
-
-                        const { error: insertError } = await supabaseAdmin
-                            .from('price_trends')
-                            .insert(row);
-
-                        if (insertError) {
-                            trendRowsSkipped++;
-                            continue;
-                        }
-                    } else {
-                        trendRowsSkipped++;
-                        continue;
-                    }
-                }
-                trendRowsInserted++;
+                });
             }
         }
 
+        // Bulk upsert in chunks of 500
+        let trendRowsInserted = 0;
+        let trendRowsSkipped = 0;
+        const CHUNK_SIZE = 500;
+        for (let i = 0; i < allTrendRows.length; i += CHUNK_SIZE) {
+            const chunk = allTrendRows.slice(i, i + CHUNK_SIZE);
+            const { error } = await supabaseAdmin
+                .from('price_trends')
+                .upsert(chunk, { onConflict: 'region_id,date,property_type', ignoreDuplicates: false });
+
+            if (error) {
+                // Fallback: delete and re-insert chunk
+                for (const row of chunk) {
+                    await supabaseAdmin.from('price_trends').delete()
+                        .eq('region_id', row.region_id).eq('date', row.date).eq('property_type', 'residential');
+                }
+                const { error: e2 } = await supabaseAdmin.from('price_trends').insert(chunk);
+                if (e2) { trendRowsSkipped += chunk.length; continue; }
+            }
+            trendRowsInserted += chunk.length;
+        }
         log.push(`  ✓ Upserted ${trendRowsInserted} trend rows (${trendRowsSkipped} skipped)`);
 
-        // Step 5: Update market_metrics with estimated data
-        // (Zillow doesn't provide days-on-market in ZHVI, so we estimate from price momentum)
+        // Step 5: BATCH market_metrics
         log.push('💾 Updating market metrics...');
-        let metricsUpdated = 0;
+        const allMetricsRows: any[] = [];
 
         for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
             const region = regionMap.get(stateName);
@@ -263,41 +238,27 @@ export async function GET(request: Request) {
             const prev = timeSeries[timeSeries.length - 2];
             const priceChange = (latest.value - prev.value) / prev.value;
 
-            // Estimate days on market from price momentum
-            // Hot markets (rising prices) = lower DOM, cold markets = higher DOM
             const baseDom = 45;
-            const domAdjust = Math.round(-priceChange * 500); // ±  days based on momentum
-            const estimatedDom = Math.max(15, Math.min(120, baseDom + domAdjust));
-
-            // Estimate inventory (inverse relationship to price growth)
+            const estimatedDom = Math.max(15, Math.min(120, baseDom + Math.round(-priceChange * 500)));
             const baseInventory = 25000;
-            const inventoryAdjust = Math.round(-priceChange * 100000);
-            const estimatedInventory = Math.max(5000, Math.min(80000, baseInventory + inventoryAdjust));
+            const estimatedInventory = Math.max(5000, Math.min(80000, baseInventory + Math.round(-priceChange * 100000)));
 
-            const metricsRow = {
+            allMetricsRows.push({
                 region_id: region.id,
                 date: latest.date.substring(0, 10),
-                property_type: 'residential' as const,
+                property_type: 'residential',
                 median_days_on_market: estimatedDom,
                 inventory_count: estimatedInventory,
                 new_listings: Math.round(estimatedInventory * 0.15),
                 pending_sales: Math.round(estimatedInventory * 0.08),
-            };
-
-            // Delete existing and insert
-            await supabaseAdmin
-                .from('market_metrics')
-                .delete()
-                .eq('region_id', region.id)
-                .eq('property_type', 'residential');
-
-            const { error } = await supabaseAdmin
-                .from('market_metrics')
-                .insert(metricsRow);
-
-            if (!error) metricsUpdated++;
+            });
         }
 
+        // Delete all existing residential metrics and bulk insert
+        await supabaseAdmin.from('market_metrics').delete().eq('property_type', 'residential');
+        const { error: metricsError } = await supabaseAdmin.from('market_metrics').insert(allMetricsRows);
+        const metricsUpdated = metricsError ? 0 : allMetricsRows.length;
+        if (metricsError) log.push(`  ⚠ Metrics error: ${metricsError.message}`);
         log.push(`  ✓ Updated ${metricsUpdated} market metric rows`);
 
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
