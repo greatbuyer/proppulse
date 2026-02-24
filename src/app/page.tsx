@@ -216,6 +216,7 @@ export default function DashboardPage() {
                     icon={<span>{propertyType === 'residential' ? '🏠' : '🏢'}</span>}
                     accent="blue"
                     delay={1}
+                    metric="median-price"
                 />
                 <KPICard
                     label="Price Per Sq Ft"
@@ -224,6 +225,7 @@ export default function DashboardPage() {
                     icon={<span>📐</span>}
                     accent="green"
                     delay={2}
+                    metric="price-per-sqft"
                 />
                 <KPICard
                     label="Avg Days on Market"
@@ -231,6 +233,7 @@ export default function DashboardPage() {
                     icon={<span>📅</span>}
                     accent="warm"
                     delay={3}
+                    metric="days-on-market"
                 />
                 <KPICard
                     label="Total Active Inventory"
@@ -238,6 +241,7 @@ export default function DashboardPage() {
                     icon={<span>📦</span>}
                     accent="blue"
                     delay={4}
+                    metric="inventory"
                 />
             </div>
         );
