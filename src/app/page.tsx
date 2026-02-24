@@ -207,6 +207,36 @@ export default function DashboardPage() {
             );
         }
         if (!summary) return null;
+
+        // Build state-level data arrays for each KPI
+        const priceStateData = summary.latestTrends.map((t: any) => ({
+            name: t.regions?.name || 'Unknown',
+            state: t.regions?.state || '',
+            value: Number(t.median_price) || 0,
+            yoy: Number(t.yoy_change) || 0,
+        }));
+
+        const psfStateData = summary.latestTrends.map((t: any) => ({
+            name: t.regions?.name || 'Unknown',
+            state: t.regions?.state || '',
+            value: Number(t.price_per_sqft) || 0,
+            yoy: Number(t.yoy_change) * 0.85 || 0,
+        }));
+
+        const domStateData = summary.metrics.map((m: any) => ({
+            name: m.regions?.name || 'Unknown',
+            state: m.regions?.state || '',
+            value: Number(m.median_days_on_market) || 0,
+            yoy: 0,
+        }));
+
+        const invStateData = summary.metrics.map((m: any) => ({
+            name: m.regions?.name || 'Unknown',
+            state: m.regions?.state || '',
+            value: Number(m.inventory_count) || 0,
+            yoy: 0,
+        }));
+
         return (
             <div className="kpi-grid">
                 <KPICard
@@ -216,7 +246,9 @@ export default function DashboardPage() {
                     icon={<span>{propertyType === 'residential' ? '🏠' : '🏢'}</span>}
                     accent="blue"
                     delay={1}
-                    metric="median-price"
+                    stateData={priceStateData}
+                    formatFn={(v) => formatCurrency(v)}
+                    metricLabel="Median Price"
                 />
                 <KPICard
                     label="Price Per Sq Ft"
@@ -225,7 +257,9 @@ export default function DashboardPage() {
                     icon={<span>📐</span>}
                     accent="green"
                     delay={2}
-                    metric="price-per-sqft"
+                    stateData={psfStateData}
+                    formatFn={(v) => `$${v}`}
+                    metricLabel="$/SqFt"
                 />
                 <KPICard
                     label="Avg Days on Market"
@@ -233,15 +267,19 @@ export default function DashboardPage() {
                     icon={<span>📅</span>}
                     accent="warm"
                     delay={3}
-                    metric="days-on-market"
+                    stateData={domStateData}
+                    formatFn={(v) => `${Math.round(v)} days`}
+                    metricLabel="Days"
                 />
                 <KPICard
                     label="Total Active Inventory"
                     value={formatNumber(summary.totalInventory)}
                     icon={<span>📦</span>}
-                    accent="blue"
+                    accent="purple"
                     delay={4}
-                    metric="inventory"
+                    stateData={invStateData}
+                    formatFn={(v) => formatNumber(v)}
+                    metricLabel="Listings"
                 />
             </div>
         );
