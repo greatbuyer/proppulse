@@ -54,7 +54,8 @@ export async function fetchPriceTrends(
         .from('price_trends')
         .select('*')
         .eq('property_type', propertyType)
-        .order('date', { ascending: true });
+        .order('date', { ascending: true })
+        .limit(5000);
 
     if (error) {
         console.error('Error fetching price trends:', error.message);
@@ -63,33 +64,36 @@ export async function fetchPriceTrends(
     return data ?? [];
 }
 
-// ---------- Fetch Latest Trends (most recent date) ----------
+// ---------- Fetch Latest Trends (most recent per region) ----------
 export async function fetchLatestTrends(
     propertyType: 'residential' | 'commercial'
 ): Promise<PriceTrend[]> {
-    // First get the most recent date
-    const { data: dateData } = await supabase
-        .from('price_trends')
-        .select('date')
-        .eq('property_type', propertyType)
-        .order('date', { ascending: false })
-        .limit(1);
-
-    const latestDate = dateData?.[0]?.date;
-    if (!latestDate) return [];
-
+    // Fetch all price trends with region info, ordered by date desc
     const { data, error } = await supabase
         .from('price_trends')
         .select('*, regions(name, state)')
         .eq('property_type', propertyType)
-        .eq('date', latestDate)
-        .order('median_price', { ascending: false });
+        .order('date', { ascending: false })
+        .limit(5000);
 
     if (error) {
         console.error('Error fetching latest trends:', error.message);
         return [];
     }
-    return data ?? [];
+
+    if (!data || data.length === 0) return [];
+
+    // Group by region_id and pick the latest entry for each
+    const latestByRegion = new Map<string, any>();
+    for (const row of data) {
+        if (!latestByRegion.has(row.region_id)) {
+            latestByRegion.set(row.region_id, row);
+        }
+    }
+
+    // Return sorted by median_price descending
+    return Array.from(latestByRegion.values())
+        .sort((a, b) => Number(b.median_price) - Number(a.median_price));
 }
 
 // ---------- Fetch Market Metrics ----------
@@ -116,7 +120,8 @@ export async function fetchNationalTrend(
         .from('price_trends')
         .select('date, median_price, price_per_sqft')
         .eq('property_type', propertyType)
-        .order('date', { ascending: true });
+        .order('date', { ascending: true })
+        .limit(5000);
 
     if (error) {
         console.error('Error fetching national trend:', error.message);
@@ -150,7 +155,8 @@ export async function fetchYoYTrend(
         .select('date, yoy_change')
         .eq('property_type', propertyType)
         .neq('yoy_change', 0)
-        .order('date', { ascending: true });
+        .order('date', { ascending: true })
+        .limit(5000);
 
     if (error) {
         console.error('Error fetching YoY trend:', error.message);
