@@ -109,7 +109,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
             <h3 style={headingStyle}>📬 Contact</h3>
             <p style={paraStyle}>
                 Have questions, feedback, or partnership inquiries? Reach out to us at{' '}
-                <strong style={{ color: 'var(--accent-blue)' }}>hello@berrypickle.com</strong>
+                <strong style={{ color: 'var(--accent-blue)' }}>contacts@berrypickle.com</strong>
             </p>
         </ModalShell>
     );
@@ -235,7 +235,7 @@ function ApiModal({ onClose }: { onClose: () => void }) {
             <h3 style={headingStyle}>📬 Get Notified</h3>
             <p style={paraStyle}>
                 Want to be among the first to access the PropPulse API? Contact us at{' '}
-                <strong style={{ color: 'var(--accent-blue)' }}>api@berrypickle.com</strong>{' '}
+                <strong style={{ color: 'var(--accent-blue)' }}>contacts@berrypickle.com</strong>{' '}
                 and we'll notify you when it launches.
             </p>
         </ModalShell>
@@ -299,7 +299,7 @@ function PrivacyModal({ onClose }: { onClose: () => void }) {
             <h3 style={headingStyle}>6. Your Rights</h3>
             <p style={paraStyle}>
                 You may request to access, update, or delete your personal data at any time by contacting us at{' '}
-                <strong style={{ color: 'var(--accent-blue)' }}>privacy@berrypickle.com</strong>. You can delete your
+                <strong style={{ color: 'var(--accent-blue)' }}>contacts@berrypickle.com</strong>. You can delete your
                 account and all associated data by contacting our support team.
             </p>
 
@@ -378,7 +378,7 @@ function TermsModal({ onClose }: { onClose: () => void }) {
             <h3 style={headingStyle}>8. Contact</h3>
             <p style={paraStyle}>
                 For questions about these Terms of Service, contact us at{' '}
-                <strong style={{ color: 'var(--accent-blue)' }}>legal@berrypickle.com</strong>
+                <strong style={{ color: 'var(--accent-blue)' }}>contacts@berrypickle.com</strong>
             </p>
         </ModalShell>
     );
