@@ -1,0 +1,725 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'
+    xmlns='http://www.w3.org/TR/REC-html40'>
+
+<head>
+    <meta charset="utf-8">
+    <title>PropPulse — Project Summary Report</title>
+    <!--[if gte mso 9]>
+<xml>
+<w:WordDocument>
+<w:View>Print</w:View>
+<w:Zoom>100</w:Zoom>
+<w:DoNotOptimizeForBrowser/>
+</w:WordDocument>
+</xml>
+<![endif]-->
+    <style>
+        @page {
+            size: letter;
+            margin: 1in;
+        }
+
+        body {
+            font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #1a1a2e;
+        }
+
+        h1 {
+            font-size: 22pt;
+            color: #1a1a2e;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        h2 {
+            font-size: 16pt;
+            color: #2d3748;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin-top: 24px;
+        }
+
+        h3 {
+            font-size: 13pt;
+            color: #4a5568;
+            margin-top: 18px;
+        }
+
+        .title-block {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 3px solid #3b82f6;
+            margin-bottom: 30px;
+        }
+
+        .title-block h1 {
+            font-size: 28pt;
+            color: #1a1a2e;
+            border: none;
+            margin: 0;
+        }
+
+        .title-block .subtitle {
+            font-size: 14pt;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        .title-block .date {
+            font-size: 10pt;
+            color: #94a3b8;
+            margin-top: 16px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 12px 0;
+            font-size: 10pt;
+        }
+
+        th {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 7px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+
+        code {
+            background-color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 9pt;
+            color: #3b82f6;
+        }
+
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 9pt;
+            line-height: 1.5;
+            margin: 10px 0;
+            white-space: pre;
+        }
+
+        .highlight-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .warning-box {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        ul {
+            margin: 8px 0;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 4px;
+        }
+
+        .check {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .pagebreak {
+            page-break-before: always;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== TITLE PAGE ===== -->
+    <div class="title-block">
+        <h1>🏠 PropPulse</h1>
+        <div class="subtitle">US Real Estate Analytics Platform<br>Project Summary Report</div>
+        <div class="date">
+            Prepared: February 23, 2026<br>
+            Developer: Vijay (greatbuyer)<br>
+            Version: 1.0 — Production Release
+        </div>
+    </div>
+
+    <!-- ===== PAGE 1: EXECUTIVE SUMMARY ===== -->
+    <h1>1. Executive Summary</h1>
+
+    <p><strong>PropPulse</strong> is a comprehensive US real estate analytics platform that provides interactive
+        visualizations, market comparisons, and pricing trend analysis for residential and commercial properties across
+        15 US states. The platform is built with modern web technologies and is fully deployed to production with a
+        custom domain.</p>
+
+    <h3>Key Achievements</h3>
+    <ul>
+        <li><span class="check">✅</span> Full-stack web application built and deployed in a single session</li>
+        <li><span class="check">✅</span> Interactive US heatmap with state-level pricing data</li>
+        <li><span class="check">✅</span> Real-time data powered by Supabase (PostgreSQL database)</li>
+        <li><span class="check">✅</span> User authentication system (signup/login)</li>
+        <li><span class="check">✅</span> Data export capabilities (CSV and PDF)</li>
+        <li><span class="check">✅</span> Marketing landing page with professional design</li>
+        <li><span class="check">✅</span> Deployed to production with custom domain (<code>berrypickle.com</code>)</li>
+    </ul>
+
+    <h3>Live URLs</h3>
+    <table>
+        <tr>
+            <th>Site</th>
+            <th>URL</th>
+            <th>Hosting</th>
+        </tr>
+        <tr>
+            <td>Marketing Landing Page</td>
+            <td>https://berrypickle.com</td>
+            <td>Netlify</td>
+        </tr>
+        <tr>
+            <td>Analytics Dashboard</td>
+            <td>https://app.berrypickle.com</td>
+            <td>Vercel</td>
+        </tr>
+        <tr>
+            <td>Source Code</td>
+            <td>https://github.com/greatbuyer/proppulse</td>
+            <td>GitHub</td>
+        </tr>
+    </table>
+
+    <h3>Data Coverage</h3>
+    <p>The platform tracks <strong>15 US states</strong> with <strong>7 years of historical data</strong> (2020–2026):
+        California, Washington, New York, Texas, Florida, Colorado, Arizona, Nevada, Ohio, Pennsylvania, Illinois,
+        Georgia, North Carolina, Tennessee, and Michigan.</p>
+
+    <!-- ===== PAGE 2: TECHNICAL ARCHITECTURE ===== -->
+    <div class="pagebreak"></div>
+    <h1>2. Technical Architecture & Technology Stack</h1>
+
+    <h2>2.1 Technology Stack</h2>
+    <table>
+        <tr>
+            <th>Layer</th>
+            <th>Technology</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td>Frontend Framework</td>
+            <td>Next.js 14 + React 18</td>
+            <td>Server-side rendered React application</td>
+        </tr>
+        <tr>
+            <td>Data Visualization</td>
+            <td>Recharts + react-simple-maps</td>
+            <td>Charts, graphs, and interactive US map</td>
+        </tr>
+        <tr>
+            <td>Database</td>
+            <td>Supabase (PostgreSQL)</td>
+            <td>Data storage, real-time queries</td>
+        </tr>
+        <tr>
+            <td>Authentication</td>
+            <td>Supabase Auth</td>
+            <td>User signup, login, session management</td>
+        </tr>
+        <tr>
+            <td>Dashboard Hosting</td>
+            <td>Vercel</td>
+            <td>Next.js optimized hosting with CDN</td>
+        </tr>
+        <tr>
+            <td>Landing Page Hosting</td>
+            <td>Netlify</td>
+            <td>Static HTML hosting</td>
+        </tr>
+        <tr>
+            <td>Styling</td>
+            <td>CSS Custom Properties</td>
+            <td>Dark theme design system</td>
+        </tr>
+        <tr>
+            <td>Domain & DNS</td>
+            <td>Hostinger + Netlify DNS</td>
+            <td>Custom domain management</td>
+        </tr>
+        <tr>
+            <td>Version Control</td>
+            <td>Git + GitHub</td>
+            <td>Source code management</td>
+        </tr>
+    </table>
+
+    <h2>2.2 Architecture Diagram</h2>
+    <div class="code-block">
+        ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
+        │ berrypickle.com│ │app.berrypickle.com│ │ Supabase Cloud │
+        │ (Netlify) │───>│ (Vercel) │──>│ (PostgreSQL) │
+        │ Landing Page │ │ Next.js App │ │ Database + Auth │
+        └──────────────────┘ └──────────────────┘ └──────────────────┘
+        │ │ │
+        └───────────┬───────────┘ │
+        │ │
+        ┌──────┴──────┐ ┌─────────┴────────┐
+        │ GitHub │ │ Tables: │
+        │ greatbuyer/ │ │ - regions │
+        │ proppulse │ │ - market_data │
+        └─────────────┘ │ - user_prefs │
+        └──────────────────┘
+    </div>
+
+    <h2>2.3 Environment Variables</h2>
+    <div class="highlight-box">
+        <strong>Required Environment Variables</strong> (stored in <code>.env.local</code>):<br>
+        <code>NEXT_PUBLIC_SUPABASE_URL</code> — Supabase project URL<br>
+        <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> — Supabase anonymous API key<br>
+        <em>These are also configured in Vercel's project settings for production deployment.</em>
+    </div>
+
+    <!-- ===== PAGE 3: FILE STRUCTURE & LOCAL STORAGE ===== -->
+    <div class="pagebreak"></div>
+    <h1>3. Project File Structure & Local Storage</h1>
+
+    <h2>3.1 Local Project Location</h2>
+    <div class="highlight-box">
+        <strong>Root Directory:</strong><br>
+        <code>c:\Users\vijay\.gemini\antigravity\scratch\real-estate-trends</code>
+    </div>
+
+    <h2>3.2 Complete File Structure</h2>
+    <table>
+        <tr>
+            <th>Path</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td colspan="3" style="background:#e2e8f0; font-weight:600;">Root Configuration Files</td>
+        </tr>
+        <tr>
+            <td><code>package.json</code></td>
+            <td>Config</td>
+            <td>Node.js dependencies and scripts</td>
+        </tr>
+        <tr>
+            <td><code>tsconfig.json</code></td>
+            <td>Config</td>
+            <td>TypeScript configuration</td>
+        </tr>
+        <tr>
+            <td><code>next.config.js</code></td>
+            <td>Config</td>
+            <td>Next.js configuration</td>
+        </tr>
+        <tr>
+            <td><code>vercel.json</code></td>
+            <td>Config</td>
+            <td>Vercel deployment settings and security headers</td>
+        </tr>
+        <tr>
+            <td><code>netlify.toml</code></td>
+            <td>Config</td>
+            <td>Netlify deployment — publish directory: <code>landing</code></td>
+        </tr>
+        <tr>
+            <td><code>.env.local</code></td>
+            <td>Secret</td>
+            <td>Supabase credentials (not committed to Git)</td>
+        </tr>
+        <tr>
+            <td><code>.env.example</code></td>
+            <td>Template</td>
+            <td>Template for environment variables</td>
+        </tr>
+        <tr>
+            <td><code>README.md</code></td>
+            <td>Docs</td>
+            <td>Project readme with setup instructions</td>
+        </tr>
+        <tr>
+            <td colspan="3" style="background:#e2e8f0; font-weight:600;">src/app/ — Next.js Pages & API Routes</td>
+        </tr>
+        <tr>
+            <td><code>src/app/page.tsx</code></td>
+            <td>Page</td>
+            <td>Main dashboard page — all tabs, KPIs, heatmap</td>
+        </tr>
+        <tr>
+            <td><code>src/app/layout.tsx</code></td>
+            <td>Layout</td>
+            <td>Root layout with SEO metadata, Open Graph tags</td>
+        </tr>
+        <tr>
+            <td><code>src/app/globals.css</code></td>
+            <td>Styles</td>
+            <td>Complete design system (~1,360 lines of CSS)</td>
+        </tr>
+        <tr>
+            <td><code>src/app/api/health/route.ts</code></td>
+            <td>API</td>
+            <td>Health check endpoint</td>
+        </tr>
+        <tr>
+            <td><code>src/app/api/seed/route.ts</code></td>
+            <td>API</td>
+            <td>Database seeding endpoint</td>
+        </tr>
+        <tr>
+            <td colspan="3" style="background:#e2e8f0; font-weight:600;">src/components/ — React Components</td>
+        </tr>
+        <tr>
+            <td><code>Navbar.tsx</code></td>
+            <td>Component</td>
+            <td>Navigation bar with auth state display</td>
+        </tr>
+        <tr>
+            <td><code>KPICard.tsx</code></td>
+            <td>Component</td>
+            <td>Metric cards (price, sqft, inventory, etc.)</td>
+        </tr>
+        <tr>
+            <td><code>USHeatmap.tsx</code></td>
+            <td>Component</td>
+            <td>Interactive color-coded US state map</td>
+        </tr>
+        <tr>
+            <td><code>TrendChart.tsx</code></td>
+            <td>Component</td>
+            <td>Line/area charts for pricing trends</td>
+        </tr>
+        <tr>
+            <td><code>CompareView.tsx</code></td>
+            <td>Component</td>
+            <td>Side-by-side market comparison tool</td>
+        </tr>
+        <tr>
+            <td><code>RegionSearch.tsx</code></td>
+            <td>Component</td>
+            <td>Autocomplete search for states</td>
+        </tr>
+        <tr>
+            <td><code>StateRankings.tsx</code></td>
+            <td>Component</td>
+            <td>Sortable state rankings table</td>
+        </tr>
+        <tr>
+            <td><code>MarketOverview.tsx</code></td>
+            <td>Component</td>
+            <td>Top growing markets sidebar</td>
+        </tr>
+        <tr>
+            <td><code>AuthModal.tsx</code></td>
+            <td>Component</td>
+            <td>Login/signup modal with glassmorphism</td>
+        </tr>
+        <tr>
+            <td><code>SavedMarkets.tsx</code></td>
+            <td>Component</td>
+            <td>User's saved markets with alert toggles</td>
+        </tr>
+        <tr>
+            <td><code>ExportButton.tsx</code></td>
+            <td>Component</td>
+            <td>CSV/PDF export dropdown</td>
+        </tr>
+        <tr>
+            <td><code>Footer.tsx</code></td>
+            <td>Component</td>
+            <td>Footer with disclaimer modal</td>
+        </tr>
+        <tr>
+            <td colspan="3" style="background:#e2e8f0; font-weight:600;">src/lib/ — Utility Libraries</td>
+        </tr>
+        <tr>
+            <td><code>supabase.ts</code></td>
+            <td>Library</td>
+            <td>Supabase client initialization</td>
+        </tr>
+        <tr>
+            <td><code>data.ts</code></td>
+            <td>Library</td>
+            <td>Data fetching functions (regions, market data)</td>
+        </tr>
+        <tr>
+            <td><code>auth.ts</code></td>
+            <td>Library</td>
+            <td>Auth functions + user preference management</td>
+        </tr>
+        <tr>
+            <td><code>export.ts</code></td>
+            <td>Library</td>
+            <td>CSV, JSON, and PDF export utilities</td>
+        </tr>
+        <tr>
+            <td><code>utils.ts</code></td>
+            <td>Library</td>
+            <td>Number/currency formatting helpers</td>
+        </tr>
+        <tr>
+            <td><code>mock-data.ts</code></td>
+            <td>Library</td>
+            <td>Fallback mock data when Supabase unavailable</td>
+        </tr>
+        <tr>
+            <td colspan="3" style="background:#e2e8f0; font-weight:600;">Other Directories</td>
+        </tr>
+        <tr>
+            <td><code>landing/index.html</code></td>
+            <td>HTML</td>
+            <td>Marketing landing page (deployed to Netlify)</td>
+        </tr>
+        <tr>
+            <td><code>supabase/schema.sql</code></td>
+            <td>SQL</td>
+            <td>Database table definitions</td>
+        </tr>
+        <tr>
+            <td><code>supabase/seed-data.sql</code></td>
+            <td>SQL</td>
+            <td>Sample data for 15 states</td>
+        </tr>
+        <tr>
+            <td><code>docs/</code></td>
+            <td>Directory</td>
+            <td>Implementation plan, quick reference, TODO</td>
+        </tr>
+    </table>
+
+    <!-- ===== PAGE 4: FEATURES & FUNCTIONALITY ===== -->
+    <div class="pagebreak"></div>
+    <h1>4. Features & Functionality</h1>
+
+    <h2>4.1 Dashboard Features</h2>
+
+    <h3>📊 KPI Cards</h3>
+    <p>Four real-time metric cards displayed at the top of the dashboard: Median Home Price, Price Per Square Foot,
+        Average Days on Market, and Total Active Inventory. Each card shows year-over-year change with green/red
+        indicators.</p>
+
+    <h3>🗺️ Interactive US Heatmap</h3>
+    <p>A color-coded SVG map of the United States showing state-level data. Users can toggle between "Median Price" and
+        "Year-over-Year Growth" views. Hovering over a state reveals a tooltip with detailed pricing data.</p>
+
+    <h3>📈 Trend Charts</h3>
+    <p>Line and area charts built with Recharts showing national pricing trends over 7 years of historical data.
+        Supports both residential and commercial property types.</p>
+
+    <h3>⚖️ Market Comparison</h3>
+    <p>Side-by-side comparison tool allowing users to select any two states and compare metrics including median price,
+        price per sqft, days on market, inventory, and year-over-year growth. Winner highlighting shows which market
+        performs better in each category.</p>
+
+    <h3>🔍 Smart Search</h3>
+    <p>Instant autocomplete search component that finds any tracked state in milliseconds. Used in both the Compare View
+        and Saved Markets features.</p>
+
+    <h3>📋 State Rankings</h3>
+    <p>Sortable table ranking all 15 tracked states by various metrics. Users can sort by price, growth rate, inventory,
+        and other factors.</p>
+
+    <h2>4.2 User Account Features</h2>
+
+    <h3>🔐 Authentication (Supabase Auth)</h3>
+    <p>Full signup/login system with email and password. The AuthModal component supports both modes with form
+        validation, error handling, and a polished glassmorphism UI design.</p>
+
+    <h3>⭐ Saved Markets</h3>
+    <p>Logged-in users can save favorite markets to track. The SavedMarkets panel allows adding markets via search,
+        removing them, and toggling price alerts on/off for each saved market.</p>
+
+    <h3>📥 Data Export</h3>
+    <p>Export functionality supporting CSV (spreadsheet format) and PDF (print-ready report). The ExportButton component
+        provides a dropdown menu accessible from the page header.</p>
+
+    <h2>4.3 Legal & Compliance</h2>
+
+    <h3>⚖️ Disclaimer</h3>
+    <p>A comprehensive legal disclaimer modal accessible from the footer covering: not financial advice, not a licensed
+        real estate agent/broker, no guarantees of accuracy, use at own risk, and third-party data sourcing. Also
+        featured prominently in the landing page footer.</p>
+
+    <h2>4.4 Landing Page (Netlify)</h2>
+    <p>A standalone marketing page at <code>berrypickle.com</code> with animated gradient backgrounds, a hero section
+        with CTA buttons, a features grid showcasing 6 platform capabilities, a call-to-action section, and a footer
+        with the legal disclaimer. All "Launch Dashboard" buttons link to <code>app.berrypickle.com</code>.</p>
+
+    <!-- ===== PAGE 5: DEPLOYMENT & NEXT STEPS ===== -->
+    <div class="pagebreak"></div>
+    <h1>5. Deployment, Accounts & Next Steps</h1>
+
+    <h2>5.1 Service Accounts</h2>
+    <table>
+        <tr>
+            <th>Service</th>
+            <th>Purpose</th>
+            <th>Plan</th>
+            <th>Account</th>
+        </tr>
+        <tr>
+            <td>Vercel</td>
+            <td>Dashboard hosting (Next.js)</td>
+            <td>Free (Hobby)</td>
+            <td>Connected via GitHub</td>
+        </tr>
+        <tr>
+            <td>Netlify</td>
+            <td>Landing page hosting</td>
+            <td>Free (Starter)</td>
+            <td>Email signup + GitHub linked</td>
+        </tr>
+        <tr>
+            <td>Supabase</td>
+            <td>Database + Auth</td>
+            <td>Free</td>
+            <td>Project: kbakhwuzxbukdxemwqmj</td>
+        </tr>
+        <tr>
+            <td>GitHub</td>
+            <td>Source code repository</td>
+            <td>Free</td>
+            <td>github.com/greatbuyer</td>
+        </tr>
+        <tr>
+            <td>Hostinger</td>
+            <td>Domain registrar</td>
+            <td>Paid (~$10/yr)</td>
+            <td>berrypickle.com</td>
+        </tr>
+    </table>
+
+    <h2>5.2 DNS Configuration</h2>
+    <table>
+        <tr>
+            <th>Domain</th>
+            <th>Type</th>
+            <th>Points To</th>
+        </tr>
+        <tr>
+            <td>berrypickle.com</td>
+            <td>Nameservers</td>
+            <td>Netlify DNS (dns1-4.p01.nsone.net)</td>
+        </tr>
+        <tr>
+            <td>app.berrypickle.com</td>
+            <td>CNAME</td>
+            <td>fda7354fdfc87256.vercel-dns-017.com</td>
+        </tr>
+    </table>
+
+    <h2>5.3 Deployment Workflow</h2>
+    <div class="highlight-box">
+        <strong>Auto-Deploy on Git Push:</strong> Any push to the <code>main</code> branch on GitHub automatically
+        triggers deployment on both Vercel (dashboard) and Netlify (landing page). No manual deployment steps required.
+    </div>
+    <div class="code-block">
+        # Deploy changes (from project directory):
+        git add .
+        git commit -m "description of changes"
+        git push
+        # Both sites update automatically within 1-2 minutes
+    </div>
+
+    <h2>5.4 Outstanding Work (TODO)</h2>
+    <div class="warning-box">
+        <strong>Priority 1 — Fix Dead Links & Complete Pages:</strong>
+        <ul>
+            <li>Create About, Methodology, API, Privacy Policy, and Terms of Service pages</li>
+            <li>Add proper empty/error states for heatmap and compare view</li>
+            <li>Show "Sign in to save markets" message for logged-out users</li>
+            <li>Verify export functionality on live site</li>
+            <li>Mobile responsiveness review</li>
+        </ul>
+    </div>
+
+    <h2>5.5 Future Roadmap</h2>
+    <table>
+        <tr>
+            <th>Phase</th>
+            <th>Features</th>
+            <th>Estimated Effort</th>
+        </tr>
+        <tr>
+            <td>Phase 1: Polish</td>
+            <td>Fix dead links, error states, mobile responsive</td>
+            <td>1-2 sessions</td>
+        </tr>
+        <tr>
+            <td>Phase 2: Features</td>
+            <td>More visualizations, city-level data, email alerts</td>
+            <td>3-5 sessions</td>
+        </tr>
+        <tr>
+            <td>Phase 3: Monetize</td>
+            <td>Stripe integration, premium tiers, pricing page</td>
+            <td>2-3 sessions</td>
+        </tr>
+        <tr>
+            <td>Phase 4: Scale</td>
+            <td>API access, blog/SEO, user analytics, mobile app</td>
+            <td>Ongoing</td>
+        </tr>
+    </table>
+
+    <h2>5.6 Scaling Costs</h2>
+    <table>
+        <tr>
+            <th>Monthly Users</th>
+            <th>Estimated Cost</th>
+            <th>Upgrades Needed</th>
+        </tr>
+        <tr>
+            <td>0 – 5,000</td>
+            <td>$0/mo (all free tiers)</td>
+            <td>None</td>
+        </tr>
+        <tr>
+            <td>5,000 – 10,000</td>
+            <td>~$25/mo</td>
+            <td>Supabase Pro</td>
+        </tr>
+        <tr>
+            <td>10,000 – 50,000</td>
+            <td>~$45-70/mo</td>
+            <td>Supabase Pro + Vercel Pro</td>
+        </tr>
+        <tr>
+            <td>50,000+</td>
+            <td>~$100-300/mo</td>
+            <td>All services upgraded + Stripe + Email</td>
+        </tr>
+    </table>
+
+    <br><br>
+    <p style="text-align: center; color: #94a3b8; font-size: 9pt;">
+        — End of Report —<br>
+        PropPulse v1.0 | February 2026 | github.com/greatbuyer/proppulse
+    </p>
+
+</body>
+
+</html>
