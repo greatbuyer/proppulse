@@ -56,15 +56,16 @@ export const metadata: Metadata = {
     },
     icons: {
         icon: [
-            { url: '/favicon.ico' },
+            { url: '/favicon.svg', type: 'image/svg+xml' },
         ],
+        apple: '/favicon.svg',
     },
 };
 
 export const viewport: Viewport = {
     width: 'device-width',
     initialScale: 1,
-    themeColor: '#0a0e1a',
+    themeColor: '#FFD166',
 };
 
 export default function RootLayout({

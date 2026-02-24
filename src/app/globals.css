@@ -1785,4 +1785,65 @@ a:hover {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  /* KPI Dropdown mobile */
+  .kpi-dropdown-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-dropdown-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .kpi-dropdown-table thead,
+  .kpi-dropdown-table tbody,
+  .kpi-dropdown-table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  /* Heatmap scrollable on mobile */
+  .heatmap-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .heatmap-container svg {
+    min-width: 600px;
+  }
+
+  /* Compare view stacked */
+  .compare-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .compare-vs {
+    padding: var(--space-sm) 0;
+  }
+
+  /* Footer compact */
+  .footer-links {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .footer {
+    padding: var(--space-lg) var(--space-md);
+    font-size: 0.75rem;
+  }
+
+  /* State rankings table scroll */
+  .rankings-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Export button smaller */
+  .export-btn {
+    font-size: 0.75rem;
+    padding: 8px 14px;
+  }
 }

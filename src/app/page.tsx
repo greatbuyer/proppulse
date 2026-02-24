@@ -1,17 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Navbar from '@/components/Navbar';
 import KPICard from '@/components/KPICard';
-import TrendChart from '@/components/TrendChart';
-import StateRankings from '@/components/StateRankings';
-import MarketOverview from '@/components/MarketOverview';
-import USHeatmap from '@/components/USHeatmap';
-import CompareView from '@/components/CompareView';
 import AuthModal from '@/components/AuthModal';
 import SavedMarkets from '@/components/SavedMarkets';
 import ExportButton from '@/components/ExportButton';
 import Footer from '@/components/Footer';
+
+// Lazy load heavy components
+const TrendChart = React.lazy(() => import('@/components/TrendChart'));
+const StateRankings = React.lazy(() => import('@/components/StateRankings'));
+const MarketOverview = React.lazy(() => import('@/components/MarketOverview'));
+const USHeatmap = React.lazy(() => import('@/components/USHeatmap'));
+const CompareView = React.lazy(() => import('@/components/CompareView'));
 import {
     fetchNationalSummary,
     fetchNationalTrend,
@@ -320,14 +322,14 @@ export default function DashboardPage() {
 
     const renderMainContent = () => {
         if (activeTab === 'compare') {
-            return <CompareView propertyType={propertyType} />;
+            return <Suspense fallback={<div className="section-card"><div className="skeleton" style={{ height: '400px' }} /></div>}><CompareView propertyType={propertyType} /></Suspense>;
         }
 
         return (
             <>
                 {renderKPICards()}
                 {!loading && (
-                    <>
+                    <Suspense fallback={<div className="section-card"><div className="skeleton" style={{ height: '400px' }} /></div>}>
                         <div className="charts-full">
                             <USHeatmap propertyType={propertyType} />
                         </div>
@@ -340,7 +342,7 @@ export default function DashboardPage() {
                         <div id="state-rankings-export">
                             <StateRankings propertyType={propertyType} />
                         </div>
-                    </>
+                    </Suspense>
                 )}
                 {/* Saved Markets section (only for logged-in users) */}
                 {user && (activeTab === 'dashboard') && (
