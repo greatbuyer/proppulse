@@ -5,6 +5,12 @@
   "regions": [
     "iad1"
   ],
+  "crons": [
+    {
+      "path": "/api/pipeline?secret=proppulse_pipeline_2026_secret",
+      "schedule": "0 6 17 * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
