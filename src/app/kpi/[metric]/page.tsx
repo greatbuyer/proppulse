@@ -189,7 +189,7 @@ export default function KPIDetailPage({ params }: { params: { metric: string } }
                 activeTab="dashboard"
                 onTabChange={() => router.push('/')}
                 user={user}
-                onSignIn={() => setShowAuth(true)}
+                onSignInClick={() => setShowAuth(true)}
                 onSignOut={() => signOut()}
             />
             <div className="kpi-detail-page">
