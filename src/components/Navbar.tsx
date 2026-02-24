@@ -40,7 +40,10 @@ export default function Navbar({
                     <button
                         key={tab.id}
                         className={`navbar-link ${activeTab === tab.id ? 'active' : ''}`}
-                        onClick={() => onTabChange(tab.id)}
+                        onClick={() => {
+                            onTabChange(tab.id);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                     >
                         {tab.label}
                     </button>
