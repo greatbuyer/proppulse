@@ -226,7 +226,34 @@ export default function USHeatmap({ propertyType, metric = 'price', onStateClick
                     {/* State paths */}
                     {Object.entries(STATE_PATHS).map(([stateCode, pathData]) => {
                         const data = stateData[stateCode];
-                        if (!data) return null;
+
+                        // Render grey shape for states without data
+                        if (!data) {
+                            return (
+                                <g key={stateCode}>
+                                    <path
+                                        d={pathData.d}
+                                        fill="rgba(200, 200, 200, 0.15)"
+                                        stroke="rgba(255,255,255,0.08)"
+                                        strokeWidth={0.5}
+                                        style={{ cursor: 'default' }}
+                                    />
+                                    <text
+                                        x={pathData.labelX}
+                                        y={pathData.labelY}
+                                        textAnchor="middle"
+                                        dominantBaseline="central"
+                                        fill="rgba(255,255,255,0.25)"
+                                        fontSize="6"
+                                        fontWeight="500"
+                                        fontFamily="Inter, sans-serif"
+                                        style={{ pointerEvents: 'none' }}
+                                    >
+                                        {stateCode}
+                                    </text>
+                                </g>
+                            );
+                        }
 
                         const fillColor = getColorFromValue(
                             activeMetric === 'price' ? data.medianPrice : data.yoyChange,

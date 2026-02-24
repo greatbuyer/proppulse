@@ -7,6 +7,7 @@ import AuthModal from '@/components/AuthModal';
 import SavedMarkets from '@/components/SavedMarkets';
 import ExportButton from '@/components/ExportButton';
 import Footer from '@/components/Footer';
+import StateDetailPanel from '@/components/StateDetailPanel';
 
 // Lazy load heavy components
 const TrendChart = React.lazy(() => import('@/components/TrendChart'));
@@ -39,6 +40,9 @@ export default function DashboardPage() {
     const [priceTrendData, setPriceTrendData] = useState<{ date: string; value: number }[]>([]);
     const [yoyTrendData, setYoYTrendData] = useState<{ date: string; value: number }[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // State detail panel
+    const [selectedState, setSelectedState] = useState<string | null>(null);
 
     // Auth state
     const [user, setUser] = useState<AuthUser | null>(null);
@@ -331,7 +335,7 @@ export default function DashboardPage() {
                 {!loading && (
                     <Suspense fallback={<div className="section-card"><div className="skeleton" style={{ height: '400px' }} /></div>}>
                         <div className="charts-full">
-                            <USHeatmap propertyType={propertyType} />
+                            <USHeatmap propertyType={propertyType} onStateClick={(code) => setSelectedState(code)} />
                         </div>
                         {renderChartRows(
                             propertyType === 'commercial' ? '#8b5cf6' : '#3b82f6',
@@ -424,6 +428,28 @@ export default function DashboardPage() {
             </main>
 
             <Footer />
+
+            {/* State Detail Panel */}
+            {selectedState && summary && (() => {
+                const trend = summary.latestTrends.find(
+                    (t: any) => t.regions?.state === selectedState
+                );
+                if (!trend) return null;
+                return (
+                    <StateDetailPanel
+                        stateInfo={{
+                            name: (trend as any).regions?.name ?? selectedState,
+                            state: selectedState,
+                            medianPrice: Number(trend.median_price),
+                            pricePerSqft: Number(trend.price_per_sqft),
+                            yoyChange: Number(trend.yoy_change),
+                            regionId: trend.region_id,
+                        }}
+                        propertyType={propertyType}
+                        onClose={() => setSelectedState(null)}
+                    />
+                );
+            })()}
         </>
     );
 }

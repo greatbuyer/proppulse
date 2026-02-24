@@ -206,3 +206,29 @@ export async function fetchNationalSummary(propertyType: 'residential' | 'commer
 
     return { avgPrice, avgYoY, avgPSF, avgDOM, totalInventory, latestTrends, metrics };
 }
+
+// ---------- Fetch State Trend (single region, historical) ----------
+export async function fetchStateTrend(
+    regionId: string,
+    propertyType: 'residential' | 'commercial'
+): Promise<{ date: string; value: number }[]> {
+    const { data, error } = await supabase
+        .from('price_trends')
+        .select('date, median_price, price_per_sqft')
+        .eq('region_id', regionId)
+        .eq('property_type', propertyType)
+        .order('date', { ascending: true })
+        .limit(500);
+
+    if (error) {
+        console.error('Error fetching state trend:', error.message);
+        return [];
+    }
+
+    return (data ?? []).map((row) => ({
+        date: row.date.substring(0, 7),
+        value: propertyType === 'residential'
+            ? Number(row.median_price)
+            : Number(row.price_per_sqft),
+    }));
+}

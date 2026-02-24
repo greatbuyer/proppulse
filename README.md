@@ -93,8 +93,7 @@ npm run dev
 
 ## 📊 Data Coverage
 
-Tracking 15 US states with 7 years of historical data (2020–2026):
-CA, WA, NY, TX, FL, CO, AZ, NV, OH, PA, IL, GA, NC, TN, MI
+Tracking all 50 US states + DC with historical data (2020–2026), including median home prices, price per sqft, YoY/MoM changes, inventory levels, and days on market.
 
 ## 📄 License
 
