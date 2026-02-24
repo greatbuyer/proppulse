@@ -93,10 +93,9 @@ function AboutModal({ onClose }: { onClose: () => void }) {
 
             <h3 style={headingStyle}>🌎 Data Coverage</h3>
             <p style={paraStyle}>
-                We currently track <strong style={{ color: 'var(--text-primary)' }}>15 US states</strong>: California,
-                Washington, New York, Texas, Florida, Colorado, Arizona, Nevada, Ohio, Pennsylvania, Illinois, Georgia,
-                North Carolina, Tennessee, and Michigan. We are actively expanding to cover all 50 states along with
-                city-level and metro-area data.
+                We currently track <strong style={{ color: 'var(--text-primary)' }}>all 50 US states + DC</strong> with
+                data sourced from Zillow Research and FRED. Our coverage includes residential and commercial property
+                analytics with monthly automated updates.
             </p>
 
             <h3 style={headingStyle}>🛠 Technology</h3>
