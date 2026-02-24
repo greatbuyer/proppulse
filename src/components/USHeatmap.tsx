@@ -19,69 +19,60 @@ interface USHeatmapProps {
     onStateClick?: (state: string) => void;
 }
 
-// Simplified US state path data for the 15 tracked states
-// Each path is an approximate SVG polygon for the state shape
+// SVG path data for all 50 US states + DC
+// Approximate polygons on a 550x310 viewBox
 const STATE_PATHS: Record<string, { d: string; labelX: number; labelY: number }> = {
-    CA: {
-        d: 'M 85 170 L 95 130 L 100 100 L 105 80 L 100 60 L 80 55 L 75 75 L 70 100 L 65 130 L 60 155 L 70 170 Z',
-        labelX: 78, labelY: 120,
-    },
-    WA: {
-        d: 'M 90 30 L 135 30 L 140 55 L 100 60 L 90 45 Z',
-        labelX: 112, labelY: 45,
-    },
-    NV: {
-        d: 'M 105 80 L 130 80 L 125 135 L 100 140 L 95 130 L 100 100 Z',
-        labelX: 112, labelY: 110,
-    },
-    AZ: {
-        d: 'M 100 140 L 125 135 L 140 140 L 150 180 L 135 185 L 105 180 L 95 170 Z',
-        labelX: 122, labelY: 162,
-    },
-    CO: {
-        d: 'M 175 115 L 225 115 L 225 148 L 175 148 Z',
-        labelX: 200, labelY: 132,
-    },
-    TX: {
-        d: 'M 220 180 L 260 175 L 280 200 L 290 235 L 270 260 L 240 270 L 215 250 L 205 225 L 195 200 Z',
-        labelX: 245, labelY: 225,
-    },
-    IL: {
-        d: 'M 350 100 L 370 100 L 375 115 L 372 140 L 365 155 L 355 160 L 345 140 L 348 115 Z',
-        labelX: 360, labelY: 128,
-    },
-    MI: {
-        d: 'M 370 50 L 395 45 L 400 60 L 395 80 L 380 90 L 370 85 L 365 70 Z M 350 75 L 370 65 L 368 85 L 355 95 L 345 90 Z',
-        labelX: 378, labelY: 72,
-    },
-    OH: {
-        d: 'M 395 100 L 420 95 L 430 105 L 425 130 L 410 135 L 395 130 L 393 115 Z',
-        labelX: 412, labelY: 115,
-    },
-    PA: {
-        d: 'M 435 90 L 475 85 L 480 100 L 470 110 L 435 112 L 430 105 Z',
-        labelX: 455, labelY: 100,
-    },
-    NY: {
-        d: 'M 460 55 L 490 45 L 500 55 L 495 70 L 485 80 L 475 85 L 455 82 L 440 85 L 435 75 L 445 60 Z',
-        labelX: 468, labelY: 70,
-    },
-    GA: {
-        d: 'M 395 185 L 420 180 L 430 195 L 425 220 L 410 230 L 395 225 L 390 205 Z',
-        labelX: 410, labelY: 205,
-    },
-    NC: {
-        d: 'M 410 160 L 470 150 L 480 158 L 475 170 L 440 175 L 415 178 L 405 175 Z',
-        labelX: 445, labelY: 165,
-    },
-    TN: {
-        d: 'M 350 165 L 410 160 L 415 175 L 405 180 L 350 182 Z',
-        labelX: 380, labelY: 172,
-    },
-    FL: {
-        d: 'M 410 230 L 425 225 L 435 230 L 445 260 L 440 285 L 425 295 L 415 280 L 405 255 L 400 240 Z',
-        labelX: 425, labelY: 260,
-    },
+    WA: { d: 'M 90 30 L 135 30 L 140 55 L 100 60 L 90 45 Z', labelX: 112, labelY: 45 },
+    OR: { d: 'M 65 55 L 100 60 L 140 55 L 135 80 L 105 80 L 65 80 Z', labelX: 100, labelY: 68 },
+    CA: { d: 'M 85 170 L 95 130 L 100 100 L 105 80 L 100 60 L 80 55 L 75 75 L 70 100 L 65 130 L 60 155 L 70 170 Z', labelX: 78, labelY: 120 },
+    NV: { d: 'M 105 80 L 130 80 L 125 135 L 100 140 L 95 130 L 100 100 Z', labelX: 112, labelY: 110 },
+    ID: { d: 'M 135 30 L 155 30 L 160 55 L 155 80 L 135 80 L 140 55 Z', labelX: 148, labelY: 55 },
+    UT: { d: 'M 130 80 L 155 80 L 155 115 L 150 135 L 125 135 Z', labelX: 140, labelY: 105 },
+    AZ: { d: 'M 100 140 L 125 135 L 150 135 L 155 175 L 135 185 L 105 180 L 95 170 Z', labelX: 125, labelY: 160 },
+    MT: { d: 'M 155 30 L 215 30 L 218 60 L 160 55 Z', labelX: 188, labelY: 44 },
+    WY: { d: 'M 160 55 L 218 60 L 222 90 L 175 90 L 155 80 Z', labelX: 190, labelY: 75 },
+    CO: { d: 'M 175 115 L 225 115 L 225 148 L 175 148 Z', labelX: 200, labelY: 132 },
+    NM: { d: 'M 155 148 L 175 148 L 225 148 L 225 190 L 195 200 L 155 195 L 155 175 Z', labelX: 188, labelY: 172 },
+    ND: { d: 'M 218 30 L 270 30 L 272 55 L 218 60 Z', labelX: 245, labelY: 44 },
+    SD: { d: 'M 218 60 L 272 55 L 275 85 L 222 90 Z', labelX: 248, labelY: 72 },
+    NE: { d: 'M 222 90 L 275 85 L 285 105 L 275 115 L 225 115 Z', labelX: 252, labelY: 102 },
+    KS: { d: 'M 225 115 L 275 115 L 285 118 L 290 148 L 225 148 Z', labelX: 258, labelY: 132 },
+    OK: { d: 'M 225 148 L 290 148 L 295 155 L 300 175 L 260 175 L 225 175 Z', labelX: 262, labelY: 162 },
+    TX: { d: 'M 220 180 L 260 175 L 300 175 L 290 200 L 290 235 L 270 260 L 240 270 L 215 250 L 205 225 L 195 200 Z', labelX: 250, labelY: 225 },
+    MN: { d: 'M 285 30 L 330 28 L 335 65 L 310 75 L 280 65 L 272 55 Z', labelX: 305, labelY: 50 },
+    IA: { d: 'M 280 65 L 310 75 L 335 65 L 345 90 L 330 100 L 285 105 L 275 85 Z', labelX: 310, labelY: 85 },
+    MO: { d: 'M 285 105 L 330 100 L 345 110 L 355 120 L 355 160 L 345 165 L 315 165 L 290 148 Z', labelX: 322, labelY: 135 },
+    AR: { d: 'M 315 165 L 345 165 L 350 170 L 355 195 L 320 200 L 300 195 L 300 175 Z', labelX: 328, labelY: 182 },
+    LA: { d: 'M 320 200 L 355 195 L 365 210 L 370 230 L 355 240 L 340 235 L 325 230 L 310 220 L 300 210 Z', labelX: 340, labelY: 218 },
+    WI: { d: 'M 330 30 L 355 35 L 370 50 L 365 75 L 350 85 L 335 65 Z', labelX: 350, labelY: 55 },
+    IL: { d: 'M 345 90 L 370 85 L 375 115 L 372 140 L 365 155 L 355 160 L 345 140 L 345 110 Z', labelX: 360, labelY: 125 },
+    MS: { d: 'M 355 195 L 380 185 L 385 215 L 380 240 L 365 245 L 355 240 L 365 210 Z', labelX: 370, labelY: 215 },
+    MI: { d: 'M 370 50 L 395 45 L 400 60 L 395 80 L 380 90 L 370 85 L 365 70 Z M 350 75 L 370 65 L 368 85 L 355 95 L 345 90 Z', labelX: 378, labelY: 72 },
+    IN: { d: 'M 375 95 L 395 90 L 398 115 L 395 140 L 385 145 L 375 115 Z', labelX: 387, labelY: 118 },
+    KY: { d: 'M 365 155 L 395 140 L 435 135 L 440 145 L 415 158 L 380 162 L 355 160 Z', labelX: 400, labelY: 150 },
+    TN: { d: 'M 350 165 L 380 162 L 415 158 L 440 152 L 465 155 L 465 170 L 410 175 L 350 182 Z', labelX: 405, labelY: 168 },
+    AL: { d: 'M 385 180 L 410 175 L 420 180 L 425 220 L 415 235 L 395 230 L 390 205 Z', labelX: 405, labelY: 205 },
+    OH: { d: 'M 395 90 L 420 85 L 430 95 L 425 120 L 420 135 L 395 140 L 398 115 Z', labelX: 412, labelY: 112 },
+    WV: { d: 'M 430 105 L 445 100 L 455 115 L 450 135 L 440 145 L 435 135 L 425 120 Z', labelX: 440, labelY: 120 },
+    VA: { d: 'M 440 145 L 465 130 L 490 130 L 490 145 L 478 155 L 465 155 L 440 152 Z', labelX: 468, labelY: 142 },
+    NC: { d: 'M 410 160 L 465 155 L 478 155 L 500 158 L 500 170 L 475 172 L 440 175 L 415 178 L 405 175 Z', labelX: 455, labelY: 165 },
+    SC: { d: 'M 420 180 L 440 175 L 470 172 L 465 195 L 445 200 L 425 195 Z', labelX: 445, labelY: 186 },
+    GA: { d: 'M 395 195 L 425 195 L 445 200 L 450 220 L 440 235 L 425 240 L 415 235 L 395 230 Z', labelX: 422, labelY: 215 },
+    FL: { d: 'M 415 235 L 440 235 L 450 240 L 460 265 L 455 285 L 440 295 L 430 280 L 420 260 L 410 245 Z', labelX: 440, labelY: 265 },
+    PA: { d: 'M 435 85 L 475 80 L 483 95 L 478 110 L 445 112 L 430 105 Z', labelX: 458, labelY: 97 },
+    NY: { d: 'M 460 50 L 490 42 L 500 52 L 498 68 L 488 78 L 475 80 L 460 82 L 445 85 L 440 75 L 450 60 Z', labelX: 472, labelY: 65 },
+    VT: { d: 'M 492 35 L 498 28 L 505 35 L 503 50 L 495 52 L 492 44 Z', labelX: 498, labelY: 42 },
+    NH: { d: 'M 498 38 L 505 35 L 510 42 L 508 58 L 502 60 L 498 52 Z', labelX: 504, labelY: 48 },
+    ME: { d: 'M 505 15 L 520 10 L 528 25 L 525 45 L 515 50 L 510 42 L 505 35 Z', labelX: 516, labelY: 30 },
+    MA: { d: 'M 498 60 L 510 58 L 518 62 L 515 68 L 505 70 L 498 68 Z', labelX: 510, labelY: 64 },
+    RI: { d: 'M 510 68 L 515 68 L 517 74 L 512 75 Z', labelX: 514, labelY: 72 },
+    CT: { d: 'M 498 68 L 510 68 L 512 78 L 500 80 Z', labelX: 505, labelY: 74 },
+    NJ: { d: 'M 483 85 L 490 82 L 492 95 L 488 108 L 482 110 L 478 100 Z', labelX: 486, labelY: 96 },
+    DE: { d: 'M 480 110 L 488 108 L 490 120 L 485 124 L 480 118 Z', labelX: 485, labelY: 116 },
+    MD: { d: 'M 450 115 L 478 110 L 480 118 L 485 124 L 480 130 L 465 130 L 450 125 Z', labelX: 468, labelY: 122 },
+    DC: { d: 'M 470 127 L 475 125 L 477 130 L 472 132 Z', labelX: 473, labelY: 129 },
+    AK: { d: 'M 70 240 L 110 235 L 130 248 L 120 270 L 100 275 L 80 265 Z', labelX: 100, labelY: 255 },
+    HI: { d: 'M 160 275 L 170 270 L 180 275 L 185 285 L 175 290 L 165 285 Z', labelX: 173, labelY: 280 },
 };
 
 function getColorFromValue(value: number, min: number, max: number, metric: 'price' | 'yoy'): string {
