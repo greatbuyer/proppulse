@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
     title: 'PropPulse | US Real Estate Trends & Analytics',
@@ -84,6 +85,7 @@ export default function RootLayout({
             </head>
             <body>
                 <div id="app-root">{children}</div>
+                <Analytics />
             </body>
         </html>
     );
