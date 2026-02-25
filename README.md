@@ -4,7 +4,7 @@ A comprehensive real estate analytics dashboard tracking US housing market trend
 
 ![PropPulse Dashboard](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)
 ![Supabase](https://img.shields.io/badge/Supabase-Powered-green?style=flat-square&logo=supabase)
-![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?style=flat-square&logo=vercel)
+![Netlify](https://img.shields.io/badge/Netlify-Deployed-00C7B7?style=flat-square&logo=netlify)
 
 ## 🚀 Features
 
@@ -26,7 +26,7 @@ A comprehensive real estate analytics dashboard tracking US housing market trend
 | Charts | **Recharts** |
 | Database | **Supabase** (PostgreSQL) |
 | Auth | **Supabase Auth** |
-| Hosting | **Vercel** (Dashboard) + **Netlify** (Landing) |
+| Hosting | **Netlify** (Dashboard + Landing Page) |
 | Styling | CSS Custom Properties (Dark Theme) |
 
 ## 📁 Project Structure
@@ -58,7 +58,6 @@ A comprehensive real estate analytics dashboard tracking US housing market trend
 ├── landing/                   # Netlify landing page
 │   └── index.html
 ├── supabase/                  # Database schema + seeds
-├── vercel.json                # Vercel config
 ├── netlify.toml               # Netlify config
 └── docs/                      # Documentation
 ```
@@ -81,15 +80,11 @@ npm run dev
 
 ## 🌐 Deployment
 
-### Vercel (Dashboard)
-1. Connect your GitHub repo to Vercel
-2. Add environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. Deploy — Vercel auto-detects Next.js
-
-### Netlify (Landing Page)
+### Netlify (Dashboard + Landing)
 1. Connect your GitHub repo to Netlify
-2. Set publish directory to `landing`
-3. Deploy — static HTML, zero build step
+2. Add environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. Deploy — Netlify auto-detects Next.js
+4. Landing page served from `landing/` directory
 
 ## 📊 Data Coverage
 
