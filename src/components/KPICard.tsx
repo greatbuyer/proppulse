@@ -142,7 +142,7 @@ export default function KPICard({
                                         <span className="state-name">{row.name}</span>
                                         <span className="state-code">{row.state}</span>
                                     </td>
-                                    <td style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
+                                    <td style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, fontSize: '0.72rem' }}>
                                         {formatFn(row.value)}
                                     </td>
                                     <td>

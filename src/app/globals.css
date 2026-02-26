@@ -404,7 +404,8 @@ a:hover {
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   box-shadow: var(--shadow-card);
   animation: dropdownSlide 0.25s ease-out;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 @keyframes dropdownSlide {
@@ -462,18 +463,38 @@ a:hover {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  table-layout: fixed;
 }
 
 .kpi-dropdown-table thead th {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 8px 10px;
+  letter-spacing: 0.04em;
+  padding: 6px 6px;
   text-align: left;
   background: var(--bg-secondary);
   border-bottom: 2px solid var(--border-color);
   color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpi-dropdown-table thead th:nth-child(1) {
+  width: 28px;
+}
+
+.kpi-dropdown-table thead th:nth-child(2) {
+  width: 40%;
+}
+
+.kpi-dropdown-table thead th:nth-child(3) {
+  width: 30%;
+}
+
+.kpi-dropdown-table thead th:nth-child(4) {
+  width: 30%;
 }
 
 .kpi-th-sortable {
@@ -495,10 +516,13 @@ a:hover {
 }
 
 .kpi-dropdown-table tbody td {
-  padding: 6px 10px;
-  font-size: 0.8rem;
+  padding: 5px 6px;
+  font-size: 0.75rem;
   font-weight: 600;
   border-bottom: 1px solid rgba(26, 26, 46, 0.15);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .kpi-dropdown-table .rank-badge {
@@ -508,17 +532,18 @@ a:hover {
 }
 
 .kpi-dropdown-table .state-name {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
 }
 
 .kpi-dropdown-table .state-code {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
 }
 
 .kpi-dropdown-table .kpi-change {
-  font-size: 0.7rem;
-  padding: 2px 6px;
+  font-size: 0.62rem;
+  padding: 1px 4px;
   margin-top: 0;
+  white-space: nowrap;
 }
 
 /* ---- Section Cards ---- */
