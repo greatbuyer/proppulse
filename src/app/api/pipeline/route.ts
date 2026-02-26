@@ -8,6 +8,34 @@ const ZILLOW_ZHVI_URL =
 // FRED API series for national median home price
 const FRED_SERIES = 'MSPUS'; // Median Sales Price of Houses Sold
 
+// Commercial multiplier tiers — high-cost states get higher commercial premiums
+const COMMERCIAL_TIER: Record<string, 'high' | 'mid' | 'low'> = {
+    California: 'high', 'New York': 'high', Massachusetts: 'high',
+    'District of Columbia': 'high', Connecticut: 'high', Hawaii: 'high',
+    'New Jersey': 'high', Washington: 'high', Colorado: 'high', Maryland: 'high',
+    Virginia: 'high', Oregon: 'high',
+    Florida: 'mid', Texas: 'mid', Illinois: 'mid', Pennsylvania: 'mid',
+    Georgia: 'mid', Arizona: 'mid', Nevada: 'mid', Utah: 'mid',
+    Minnesota: 'mid', Tennessee: 'mid', 'North Carolina': 'mid',
+    'South Carolina': 'mid', Ohio: 'mid', Michigan: 'mid', Wisconsin: 'mid',
+    Missouri: 'mid', Indiana: 'mid', Idaho: 'mid', Montana: 'mid',
+    Maine: 'mid', 'New Hampshire': 'mid', Vermont: 'mid',
+    'Rhode Island': 'mid', Delaware: 'mid',
+    // All others default to 'low'
+};
+
+function getCommercialMultipliers(stateName: string) {
+    const tier = COMMERCIAL_TIER[stateName] || 'low';
+    switch (tier) {
+        case 'high':
+            return { price: 2.3, psf: 1.9, yoy: 0.8, mom: 0.7, dom: 1.8, inv: 0.18 };
+        case 'mid':
+            return { price: 2.0, psf: 1.6, yoy: 0.85, mom: 0.75, dom: 1.6, inv: 0.20 };
+        case 'low':
+            return { price: 1.7, psf: 1.35, yoy: 0.9, mom: 0.8, dom: 2.0, inv: 0.22 };
+    }
+}
+
 // Map of state abbreviations to full names (all 50 states + DC)
 const STATE_MAP: Record<string, string> = {
     AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas',
@@ -261,6 +289,105 @@ export async function GET(request: Request) {
         if (metricsError) log.push(`  ⚠ Metrics error: ${metricsError.message}`);
         log.push(`  ✓ Updated ${metricsUpdated} market metric rows`);
 
+        // Step 6: Generate COMMERCIAL price_trends from residential data
+        log.push('🏢 Generating commercial price trends...');
+        const commercialTrendRows: any[] = [];
+
+        for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
+            const region = regionMap.get(stateName);
+            if (!region) continue;
+
+            const mult = getCommercialMultipliers(stateName);
+            const recentData = timeSeries.filter(
+                (d: { date: string; value: number }) => d.date >= '2020-01-01'
+            );
+            const quarterlyData = recentData.filter((_: any, i: number) => i % 3 === 0 || i === recentData.length - 1);
+
+            for (let idx = 0; idx < quarterlyData.length; idx++) {
+                const d = quarterlyData[idx];
+                const oneYearAgo = timeSeries.find(
+                    (t: { date: string; value: number }) => t.date.substring(0, 7) ===
+                        new Date(new Date(d.date).setFullYear(new Date(d.date).getFullYear() - 1))
+                            .toISOString().substring(0, 7)
+                );
+                const baseYoy = oneYearAgo
+                    ? Math.round(((d.value - oneYearAgo.value) / oneYearAgo.value) * 10000) / 100
+                    : 0;
+                const prevMonth = idx > 0 ? quarterlyData[idx - 1] : null;
+                const baseMom = prevMonth
+                    ? Math.round(((d.value - prevMonth.value) / prevMonth.value) * 10000) / 100
+                    : 0;
+
+                commercialTrendRows.push({
+                    region_id: region.id,
+                    date: d.date.substring(0, 10),
+                    property_type: 'commercial',
+                    median_price: Math.round(d.value * mult.price),
+                    price_per_sqft: Math.round((d.value / 1800) * mult.psf),
+                    yoy_change: Math.round(baseYoy * mult.yoy * 100) / 100,
+                    mom_change: Math.round(baseMom * mult.mom * 100) / 100,
+                });
+            }
+        }
+
+        // Bulk upsert commercial trends
+        let commercialTrendsInserted = 0;
+        for (let i = 0; i < commercialTrendRows.length; i += CHUNK_SIZE) {
+            const chunk = commercialTrendRows.slice(i, i + CHUNK_SIZE);
+            const { error } = await supabaseAdmin
+                .from('price_trends')
+                .upsert(chunk, { onConflict: 'region_id,date,property_type', ignoreDuplicates: false });
+
+            if (error) {
+                for (const row of chunk) {
+                    await supabaseAdmin.from('price_trends').delete()
+                        .eq('region_id', row.region_id).eq('date', row.date).eq('property_type', 'commercial');
+                }
+                const { error: e2 } = await supabaseAdmin.from('price_trends').insert(chunk);
+                if (e2) continue;
+            }
+            commercialTrendsInserted += chunk.length;
+        }
+        log.push(`  ✓ Upserted ${commercialTrendsInserted} commercial trend rows`);
+
+        // Step 7: Generate COMMERCIAL market_metrics
+        log.push('🏢 Generating commercial market metrics...');
+        const commercialMetricsRows: any[] = [];
+
+        for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
+            const region = regionMap.get(stateName);
+            if (!region || timeSeries.length < 2) continue;
+
+            const mult = getCommercialMultipliers(stateName);
+            const latest = timeSeries[timeSeries.length - 1];
+            const prev = timeSeries[timeSeries.length - 2];
+            const priceChange = (latest.value - prev.value) / prev.value;
+
+            const baseDom = 45;
+            const resDom = Math.max(15, Math.min(120, baseDom + Math.round(-priceChange * 500)));
+            const commercialDom = Math.round(resDom * mult.dom);
+
+            const baseInventory = 25000;
+            const resInventory = Math.max(5000, Math.min(80000, baseInventory + Math.round(-priceChange * 100000)));
+            const commercialInventory = Math.round(resInventory * mult.inv);
+
+            commercialMetricsRows.push({
+                region_id: region.id,
+                date: latest.date.substring(0, 10),
+                property_type: 'commercial',
+                median_days_on_market: commercialDom,
+                inventory_count: commercialInventory,
+                new_listings: Math.round(commercialInventory * 0.12),
+                pending_sales: Math.round(commercialInventory * 0.05),
+            });
+        }
+
+        await supabaseAdmin.from('market_metrics').delete().eq('property_type', 'commercial');
+        const { error: commMetricsError } = await supabaseAdmin.from('market_metrics').insert(commercialMetricsRows);
+        const commMetricsUpdated = commMetricsError ? 0 : commercialMetricsRows.length;
+        if (commMetricsError) log.push(`  ⚠ Commercial metrics error: ${commMetricsError.message}`);
+        log.push(`  ✓ Updated ${commMetricsUpdated} commercial market metric rows`);
+
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
         log.push(`\n✅ Pipeline completed in ${elapsed}s`);
 
@@ -270,7 +397,9 @@ export async function GET(request: Request) {
                 statesProcessed: zillowData.size,
                 trendRowsInserted,
                 trendRowsSkipped,
+                commercialTrendsInserted,
                 metricsUpdated,
+                commMetricsUpdated,
                 fredObservations: fredData.length,
                 elapsedSeconds: parseFloat(elapsed),
             },
