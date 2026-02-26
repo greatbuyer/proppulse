@@ -155,6 +155,7 @@ async function fetchFREDNationalMedian(): Promise<{ date: string; value: number 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get('secret');
+    const phase = searchParams.get('phase') || 'all'; // 'residential', 'commercial', or 'all'
 
     // Validate API secret
     if (secret !== process.env.API_SECRET) {
@@ -163,6 +164,7 @@ export async function GET(request: Request) {
 
     const log: string[] = [];
     const startTime = Date.now();
+    log.push(`🚀 Pipeline phase: ${phase}`);
 
     try {
         // Step 1: Get existing regions from Supabase
@@ -188,211 +190,223 @@ export async function GET(request: Request) {
         const fredData = await fetchFREDNationalMedian();
         log.push(`  ✓ Got ${fredData.length} FRED observations`);
 
-        // Step 4: BATCH process — collect all rows first, then bulk upsert
-        log.push('💾 Processing price trend data...');
-        const allTrendRows: any[] = [];
-
-        for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
-            const region = regionMap.get(stateName);
-            if (!region) {
-                log.push(`  ⚠ No region found for "${stateName}", skipping`);
-                continue;
-            }
-
-            const recentData = timeSeries.filter(
-                (d: { date: string; value: number }) => d.date >= '2020-01-01'
-            );
-            const quarterlyData = recentData.filter((_: any, i: number) => i % 3 === 0 || i === recentData.length - 1);
-
-            for (let idx = 0; idx < quarterlyData.length; idx++) {
-                const d = quarterlyData[idx];
-                const oneYearAgo = timeSeries.find(
-                    (t: { date: string; value: number }) => t.date.substring(0, 7) ===
-                        new Date(new Date(d.date).setFullYear(new Date(d.date).getFullYear() - 1))
-                            .toISOString().substring(0, 7)
-                );
-                const yoyChange = oneYearAgo
-                    ? Math.round(((d.value - oneYearAgo.value) / oneYearAgo.value) * 10000) / 100
-                    : 0;
-                const prevMonth = idx > 0 ? quarterlyData[idx - 1] : null;
-                const momChange = prevMonth
-                    ? Math.round(((d.value - prevMonth.value) / prevMonth.value) * 10000) / 100
-                    : 0;
-
-                allTrendRows.push({
-                    region_id: region.id,
-                    date: d.date.substring(0, 10),
-                    property_type: 'residential',
-                    median_price: d.value,
-                    price_per_sqft: Math.round(d.value / 1800),
-                    yoy_change: yoyChange,
-                    mom_change: momChange,
-                });
-            }
-        }
-
-        // Bulk upsert in chunks of 500
+        // ---- RESIDENTIAL PHASE ----
         let trendRowsInserted = 0;
         let trendRowsSkipped = 0;
+        let metricsUpdated = 0;
         const CHUNK_SIZE = 500;
-        for (let i = 0; i < allTrendRows.length; i += CHUNK_SIZE) {
-            const chunk = allTrendRows.slice(i, i + CHUNK_SIZE);
-            const { error } = await supabaseAdmin
-                .from('price_trends')
-                .upsert(chunk, { onConflict: 'region_id,date,property_type', ignoreDuplicates: false });
 
-            if (error) {
-                // Fallback: delete and re-insert chunk
-                for (const row of chunk) {
-                    await supabaseAdmin.from('price_trends').delete()
-                        .eq('region_id', row.region_id).eq('date', row.date).eq('property_type', 'residential');
+        if (phase === 'residential' || phase === 'all') {
+            // Step 4: BATCH process — collect all rows first, then bulk upsert
+            log.push('💾 Processing price trend data...');
+            const allTrendRows: any[] = [];
+
+            for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
+                const region = regionMap.get(stateName);
+                if (!region) {
+                    log.push(`  ⚠ No region found for "${stateName}", skipping`);
+                    continue;
                 }
-                const { error: e2 } = await supabaseAdmin.from('price_trends').insert(chunk);
-                if (e2) { trendRowsSkipped += chunk.length; continue; }
-            }
-            trendRowsInserted += chunk.length;
-        }
-        log.push(`  ✓ Upserted ${trendRowsInserted} trend rows (${trendRowsSkipped} skipped)`);
 
-        // Step 5: BATCH market_metrics
-        log.push('💾 Updating market metrics...');
-        const allMetricsRows: any[] = [];
-
-        for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
-            const region = regionMap.get(stateName);
-            if (!region || timeSeries.length < 2) continue;
-
-            const latest = timeSeries[timeSeries.length - 1];
-            const prev = timeSeries[timeSeries.length - 2];
-            const priceChange = (latest.value - prev.value) / prev.value;
-
-            const baseDom = 45;
-            const estimatedDom = Math.max(15, Math.min(120, baseDom + Math.round(-priceChange * 500)));
-            const baseInventory = 25000;
-            const estimatedInventory = Math.max(5000, Math.min(80000, baseInventory + Math.round(-priceChange * 100000)));
-
-            allMetricsRows.push({
-                region_id: region.id,
-                date: latest.date.substring(0, 10),
-                property_type: 'residential',
-                median_days_on_market: estimatedDom,
-                inventory_count: estimatedInventory,
-                new_listings: Math.round(estimatedInventory * 0.15),
-                pending_sales: Math.round(estimatedInventory * 0.08),
-            });
-        }
-
-        // Delete all existing residential metrics and bulk insert
-        await supabaseAdmin.from('market_metrics').delete().eq('property_type', 'residential');
-        const { error: metricsError } = await supabaseAdmin.from('market_metrics').insert(allMetricsRows);
-        const metricsUpdated = metricsError ? 0 : allMetricsRows.length;
-        if (metricsError) log.push(`  ⚠ Metrics error: ${metricsError.message}`);
-        log.push(`  ✓ Updated ${metricsUpdated} market metric rows`);
-
-        // Step 6: Generate COMMERCIAL price_trends from residential data
-        log.push('🏢 Generating commercial price trends...');
-        const commercialTrendRows: any[] = [];
-
-        for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
-            const region = regionMap.get(stateName);
-            if (!region) continue;
-
-            const mult = getCommercialMultipliers(stateName);
-            const recentData = timeSeries.filter(
-                (d: { date: string; value: number }) => d.date >= '2020-01-01'
-            );
-            const quarterlyData = recentData.filter((_: any, i: number) => i % 3 === 0 || i === recentData.length - 1);
-
-            for (let idx = 0; idx < quarterlyData.length; idx++) {
-                const d = quarterlyData[idx];
-                const oneYearAgo = timeSeries.find(
-                    (t: { date: string; value: number }) => t.date.substring(0, 7) ===
-                        new Date(new Date(d.date).setFullYear(new Date(d.date).getFullYear() - 1))
-                            .toISOString().substring(0, 7)
+                const recentData = timeSeries.filter(
+                    (d: { date: string; value: number }) => d.date >= '2020-01-01'
                 );
-                const baseYoy = oneYearAgo
-                    ? Math.round(((d.value - oneYearAgo.value) / oneYearAgo.value) * 10000) / 100
-                    : 0;
-                const prevMonth = idx > 0 ? quarterlyData[idx - 1] : null;
-                const baseMom = prevMonth
-                    ? Math.round(((d.value - prevMonth.value) / prevMonth.value) * 10000) / 100
-                    : 0;
+                const quarterlyData = recentData.filter((_: any, i: number) => i % 3 === 0 || i === recentData.length - 1);
 
-                commercialTrendRows.push({
+                for (let idx = 0; idx < quarterlyData.length; idx++) {
+                    const d = quarterlyData[idx];
+                    const oneYearAgo = timeSeries.find(
+                        (t: { date: string; value: number }) => t.date.substring(0, 7) ===
+                            new Date(new Date(d.date).setFullYear(new Date(d.date).getFullYear() - 1))
+                                .toISOString().substring(0, 7)
+                    );
+                    const yoyChange = oneYearAgo
+                        ? Math.round(((d.value - oneYearAgo.value) / oneYearAgo.value) * 10000) / 100
+                        : 0;
+                    const prevMonth = idx > 0 ? quarterlyData[idx - 1] : null;
+                    const momChange = prevMonth
+                        ? Math.round(((d.value - prevMonth.value) / prevMonth.value) * 10000) / 100
+                        : 0;
+
+                    allTrendRows.push({
+                        region_id: region.id,
+                        date: d.date.substring(0, 10),
+                        property_type: 'residential',
+                        median_price: d.value,
+                        price_per_sqft: Math.round(d.value / 1800),
+                        yoy_change: yoyChange,
+                        mom_change: momChange,
+                    });
+                }
+            }
+
+            // Bulk upsert in chunks of 500
+            for (let i = 0; i < allTrendRows.length; i += CHUNK_SIZE) {
+                const chunk = allTrendRows.slice(i, i + CHUNK_SIZE);
+                const { error } = await supabaseAdmin
+                    .from('price_trends')
+                    .upsert(chunk, { onConflict: 'region_id,date,property_type', ignoreDuplicates: false });
+
+                if (error) {
+                    // Fallback: delete and re-insert chunk
+                    for (const row of chunk) {
+                        await supabaseAdmin.from('price_trends').delete()
+                            .eq('region_id', row.region_id).eq('date', row.date).eq('property_type', 'residential');
+                    }
+                    const { error: e2 } = await supabaseAdmin.from('price_trends').insert(chunk);
+                    if (e2) { trendRowsSkipped += chunk.length; continue; }
+                }
+                trendRowsInserted += chunk.length;
+            }
+            log.push(`  ✓ Upserted ${trendRowsInserted} trend rows (${trendRowsSkipped} skipped)`);
+
+            // Step 5: BATCH market_metrics
+            log.push('💾 Updating market metrics...');
+            const allMetricsRows: any[] = [];
+
+            for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
+                const region = regionMap.get(stateName);
+                if (!region || timeSeries.length < 2) continue;
+
+                const latest = timeSeries[timeSeries.length - 1];
+                const prev = timeSeries[timeSeries.length - 2];
+                const priceChange = (latest.value - prev.value) / prev.value;
+
+                const baseDom = 45;
+                const estimatedDom = Math.max(15, Math.min(120, baseDom + Math.round(-priceChange * 500)));
+                const baseInventory = 25000;
+                const estimatedInventory = Math.max(5000, Math.min(80000, baseInventory + Math.round(-priceChange * 100000)));
+
+                allMetricsRows.push({
                     region_id: region.id,
-                    date: d.date.substring(0, 10),
-                    property_type: 'commercial',
-                    median_price: Math.round(d.value * mult.price),
-                    price_per_sqft: Math.round((d.value / 1800) * mult.psf),
-                    yoy_change: Math.round(baseYoy * mult.yoy * 100) / 100,
-                    mom_change: Math.round(baseMom * mult.mom * 100) / 100,
+                    date: latest.date.substring(0, 10),
+                    property_type: 'residential',
+                    median_days_on_market: estimatedDom,
+                    inventory_count: estimatedInventory,
+                    new_listings: Math.round(estimatedInventory * 0.15),
+                    pending_sales: Math.round(estimatedInventory * 0.08),
                 });
             }
-        }
 
-        // Bulk upsert commercial trends
+            // Delete all existing residential metrics and bulk insert
+            await supabaseAdmin.from('market_metrics').delete().eq('property_type', 'residential');
+            const { error: metricsError } = await supabaseAdmin.from('market_metrics').insert(allMetricsRows);
+            const metricsResult = metricsError ? 0 : allMetricsRows.length;
+            metricsUpdated = metricsResult;
+            if (metricsError) log.push(`  ⚠ Metrics error: ${metricsError.message}`);
+            log.push(`  ✓ Updated ${metricsUpdated} market metric rows`);
+        } // end residential phase
+
+        // ---- COMMERCIAL PHASE ----
         let commercialTrendsInserted = 0;
-        for (let i = 0; i < commercialTrendRows.length; i += CHUNK_SIZE) {
-            const chunk = commercialTrendRows.slice(i, i + CHUNK_SIZE);
-            const { error } = await supabaseAdmin
-                .from('price_trends')
-                .upsert(chunk, { onConflict: 'region_id,date,property_type', ignoreDuplicates: false });
+        let commMetricsUpdated = 0;
 
-            if (error) {
-                for (const row of chunk) {
-                    await supabaseAdmin.from('price_trends').delete()
-                        .eq('region_id', row.region_id).eq('date', row.date).eq('property_type', 'commercial');
+        if (phase === 'commercial' || phase === 'all') {
+            // Step 6: Generate COMMERCIAL price_trends from residential data
+            log.push('🏢 Generating commercial price trends...');
+            const commercialTrendRows: any[] = [];
+
+            for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
+                const region = regionMap.get(stateName);
+                if (!region) continue;
+
+                const mult = getCommercialMultipliers(stateName);
+                const recentData = timeSeries.filter(
+                    (d: { date: string; value: number }) => d.date >= '2020-01-01'
+                );
+                const quarterlyData = recentData.filter((_: any, i: number) => i % 3 === 0 || i === recentData.length - 1);
+
+                for (let idx = 0; idx < quarterlyData.length; idx++) {
+                    const d = quarterlyData[idx];
+                    const oneYearAgo = timeSeries.find(
+                        (t: { date: string; value: number }) => t.date.substring(0, 7) ===
+                            new Date(new Date(d.date).setFullYear(new Date(d.date).getFullYear() - 1))
+                                .toISOString().substring(0, 7)
+                    );
+                    const baseYoy = oneYearAgo
+                        ? Math.round(((d.value - oneYearAgo.value) / oneYearAgo.value) * 10000) / 100
+                        : 0;
+                    const prevMonth = idx > 0 ? quarterlyData[idx - 1] : null;
+                    const baseMom = prevMonth
+                        ? Math.round(((d.value - prevMonth.value) / prevMonth.value) * 10000) / 100
+                        : 0;
+
+                    commercialTrendRows.push({
+                        region_id: region.id,
+                        date: d.date.substring(0, 10),
+                        property_type: 'commercial',
+                        median_price: Math.round(d.value * mult.price),
+                        price_per_sqft: Math.round((d.value / 1800) * mult.psf),
+                        yoy_change: Math.round(baseYoy * mult.yoy * 100) / 100,
+                        mom_change: Math.round(baseMom * mult.mom * 100) / 100,
+                    });
                 }
-                const { error: e2 } = await supabaseAdmin.from('price_trends').insert(chunk);
-                if (e2) continue;
             }
-            commercialTrendsInserted += chunk.length;
-        }
-        log.push(`  ✓ Upserted ${commercialTrendsInserted} commercial trend rows`);
 
-        // Step 7: Generate COMMERCIAL market_metrics
-        log.push('🏢 Generating commercial market metrics...');
-        const commercialMetricsRows: any[] = [];
+            // Bulk upsert commercial trends
+            for (let i = 0; i < commercialTrendRows.length; i += CHUNK_SIZE) {
+                const chunk = commercialTrendRows.slice(i, i + CHUNK_SIZE);
+                const { error } = await supabaseAdmin
+                    .from('price_trends')
+                    .upsert(chunk, { onConflict: 'region_id,date,property_type', ignoreDuplicates: false });
 
-        for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
-            const region = regionMap.get(stateName);
-            if (!region || timeSeries.length < 2) continue;
+                if (error) {
+                    for (const row of chunk) {
+                        await supabaseAdmin.from('price_trends').delete()
+                            .eq('region_id', row.region_id).eq('date', row.date).eq('property_type', 'commercial');
+                    }
+                    const { error: e2 } = await supabaseAdmin.from('price_trends').insert(chunk);
+                    if (e2) continue;
+                }
+                commercialTrendsInserted += chunk.length;
+            }
+            log.push(`  ✓ Upserted ${commercialTrendsInserted} commercial trend rows`);
 
-            const mult = getCommercialMultipliers(stateName);
-            const latest = timeSeries[timeSeries.length - 1];
-            const prev = timeSeries[timeSeries.length - 2];
-            const priceChange = (latest.value - prev.value) / prev.value;
+            // Step 7: Generate COMMERCIAL market_metrics
+            log.push('🏢 Generating commercial market metrics...');
+            const commercialMetricsRows: any[] = [];
 
-            const baseDom = 45;
-            const resDom = Math.max(15, Math.min(120, baseDom + Math.round(-priceChange * 500)));
-            const commercialDom = Math.round(resDom * mult.dom);
+            for (const [stateName, timeSeries] of Array.from(zillowData.entries())) {
+                const region = regionMap.get(stateName);
+                if (!region || timeSeries.length < 2) continue;
 
-            const baseInventory = 25000;
-            const resInventory = Math.max(5000, Math.min(80000, baseInventory + Math.round(-priceChange * 100000)));
-            const commercialInventory = Math.round(resInventory * mult.inv);
+                const mult = getCommercialMultipliers(stateName);
+                const latest = timeSeries[timeSeries.length - 1];
+                const prev = timeSeries[timeSeries.length - 2];
+                const priceChange = (latest.value - prev.value) / prev.value;
 
-            commercialMetricsRows.push({
-                region_id: region.id,
-                date: latest.date.substring(0, 10),
-                property_type: 'commercial',
-                median_days_on_market: commercialDom,
-                inventory_count: commercialInventory,
-                new_listings: Math.round(commercialInventory * 0.12),
-                pending_sales: Math.round(commercialInventory * 0.05),
-            });
-        }
+                const baseDom = 45;
+                const resDom = Math.max(15, Math.min(120, baseDom + Math.round(-priceChange * 500)));
+                const commercialDom = Math.round(resDom * mult.dom);
 
-        await supabaseAdmin.from('market_metrics').delete().eq('property_type', 'commercial');
-        const { error: commMetricsError } = await supabaseAdmin.from('market_metrics').insert(commercialMetricsRows);
-        const commMetricsUpdated = commMetricsError ? 0 : commercialMetricsRows.length;
-        if (commMetricsError) log.push(`  ⚠ Commercial metrics error: ${commMetricsError.message}`);
-        log.push(`  ✓ Updated ${commMetricsUpdated} commercial market metric rows`);
+                const baseInventory = 25000;
+                const resInventory = Math.max(5000, Math.min(80000, baseInventory + Math.round(-priceChange * 100000)));
+                const commercialInventory = Math.round(resInventory * mult.inv);
+
+                commercialMetricsRows.push({
+                    region_id: region.id,
+                    date: latest.date.substring(0, 10),
+                    property_type: 'commercial',
+                    median_days_on_market: commercialDom,
+                    inventory_count: commercialInventory,
+                    new_listings: Math.round(commercialInventory * 0.12),
+                    pending_sales: Math.round(commercialInventory * 0.05),
+                });
+            }
+
+            await supabaseAdmin.from('market_metrics').delete().eq('property_type', 'commercial');
+            const { error: commMetricsError } = await supabaseAdmin.from('market_metrics').insert(commercialMetricsRows);
+            commMetricsUpdated = commMetricsError ? 0 : commercialMetricsRows.length;
+            if (commMetricsError) log.push(`  ⚠ Commercial metrics error: ${commMetricsError.message}`);
+            log.push(`  ✓ Updated ${commMetricsUpdated} commercial market metric rows`);
+        } // end commercial phase
 
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        log.push(`\n✅ Pipeline completed in ${elapsed}s`);
+        log.push(`\n✅ Pipeline (${phase}) completed in ${elapsed}s`);
 
         return NextResponse.json({
             success: true,
+            phase,
             summary: {
                 statesProcessed: zillowData.size,
                 trendRowsInserted,
