@@ -1,0 +1,55 @@
+name: Health Monitor
+on:
+  schedule:
+    # Runs every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check Site Availability
+        run: |
+          echo "🏥 Checking site availability..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            "${{ secrets.SITE_URL }}")
+          echo "Homepage HTTP status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "❌ Homepage returned $HTTP_STATUS"
+            exit 1
+          fi
+          echo "✅ Homepage is up"
+
+      - name: Check Health API
+        run: |
+          echo "🔍 Checking health API..."
+          RESPONSE=$(curl -sf --max-time 30 \
+            "${{ secrets.SITE_URL }}/api/health")
+          STATUS=$(echo "$RESPONSE" | jq -r '.status')
+          REGIONS=$(echo "$RESPONSE" | jq -r '.message')
+          echo "Status: $STATUS"
+          echo "Message: $REGIONS"
+          if [ "$STATUS" != "connected" ]; then
+            echo "❌ Health check failed! Status: $STATUS"
+            exit 1
+          fi
+          echo "✅ Supabase connection healthy"
+
+      - name: Check Data Freshness
+        run: |
+          echo "📊 Checking data freshness..."
+          RESPONSE=$(curl -sf --max-time 30 \
+            "${{ secrets.SITE_URL }}/api/health")
+          REGION_COUNT=$(echo "$RESPONSE" | jq '.regions | length')
+          echo "Regions found: $REGION_COUNT"
+          if [ "$REGION_COUNT" -lt 50 ]; then
+            echo "⚠️ Warning: Only $REGION_COUNT regions found (expected 51)"
+          fi
+          echo "✅ Data check complete"
+
+      - name: Report failure
+        if: failure()
+        run: |
+          echo "::error::berrypickle.com health check FAILED at $(date -u). Check the logs above."
